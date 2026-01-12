@@ -21,19 +21,62 @@ e-Paper/
 # API responses (if saved for debugging)
 api_response_*.json
 
-# IDE
+# IDE and Editor files
 .vscode/
 .idea/
 *.code-workspace
+.cursor/
+.cursor-server/
+*.sublime-*
+
+# Claude AI files
+.claude/
+.claude.json
+.claude.json.backup
+
+# Bash/Shell files
+.bash_history
+.bash_logout
+.bashrc
+.profile
+.zshrc
+.zsh_history
+
+# SSH keys and config
+.ssh/
+*.pem
+*.key
+
+# System directories
+.cache/
+.config/
+.local/
+.sudo_as_admin_successful
+.cloud-locale-test.skip
 
 # Environment
 .env
 .venv/
 venv/
-
-# Service file in system directory (we have a copy in home)
-# /etc/systemd/system/bus-display.service
+env/
 
 # Temporary files
 *.tmp
 *.bak
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Service file in system directory (we have a copy in home)
+# /etc/systemd/system/bus-display.service
+
+# Documentation files (optional - uncomment if you don't want to track these)
+# PROJECT_FILES_REVIEW.md
+
+# Git files (shouldn't be needed, but just in case)
+*.orig
+*.rej
