@@ -1,0 +1,226 @@
+================================================================================
+          FUTURE HOME SERVER PROJECT - IDEAS & PLANS
+================================================================================
+
+OVERVIEW:
+---------
+Personal home server setup using a Mac Mini (M1/M2) to create a comprehensive
+home automation and media management system. This will serve as a central hub
+for all personal data, backups, and services - eliminating reliance on cloud
+services and providing complete control over personal data.
+
+HARDWARE SETUP:
+--------------
+- Mac Mini (M1 or M2, 256GB internal storage is sufficient)
+- External storage: 4TB+ USB-C/Thunderbolt drive
+  * Consider RAID enclosure for data redundancy (2-bay with mirroring)
+  * All media and files stored on external drive
+  * Internal Mac Mini storage only for OS and applications
+
+================================================================================
+PROJECTS TO IMPLEMENT:
+================================================================================
+
+1. NAS + MEDIA SERVER STACK
+   ------------------------
+   Purpose: Automated movie and TV show management with Netflix-like interface
+   
+   Components:
+   - Plex or Jellyfin (media streaming server)
+   - Sonarr (TV show automation)
+   - Radarr (movie automation)
+   - Prowlarr (indexer management)
+   - qBittorrent (download client)
+   - Overseerr (request interface - search and request content easily)
+   
+   What it does:
+   - Request movies/shows through beautiful web interface
+   - Automatically downloads, organizes, and adds to library
+   - Watch on any device (phone, tablet, laptop, TV)
+   - Works remotely with Tailscale
+   
+   Storage needs: 2-4TB minimum, grows over time
+
+
+2. FILE SERVER (NextCloud)
+   ------------------------
+   Purpose: Personal cloud storage - like Dropbox/Google Drive but self-hosted
+   
+   Features:
+   - Sync files across all devices automatically
+   - Share files with friends/family
+   - Calendar and contacts sync
+   - Photo auto-upload from phone
+   - Collaborative document editing
+   - No subscription fees
+   - Complete control over data
+   
+   Why: Replace paid cloud services, keep data private
+
+
+3. TIME MACHINE SERVER
+   ---------------------
+   Purpose: Centralized backup system for all Apple devices
+   
+   What it backs up:
+   - All Mac computers in the home (automatic wireless backups)
+   - Version history (go back in time to recover old files)
+   - Complete system snapshots
+   
+   For iPhones/iPads backup:
+   - Note: Time Machine doesn't directly back up iOS devices
+   - iOS devices can backup to Mac Mini via iTunes/Finder connection
+   - Or use NextCloud for photo/file backup from iOS
+   - Consider additional solution for automated iOS backups
+   
+   Why: Automated, set-and-forget backups without iCloud subscription
+
+
+4. TAILSCALE EXIT NODE (VPN)
+   ---------------------------
+   Purpose: Secure remote access and route internet through home connection
+   
+   Use cases:
+   - Access home network from anywhere in the world
+   - Watch home Netflix library while traveling abroad
+   - Secure internet on public Wi-Fi (coffee shops, airports)
+   - Access all home services remotely (NAS, media server, etc.)
+   - Bypass geo-restrictions using home IP address
+   - Bank from abroad without "suspicious location" blocks
+   
+   How it works:
+   - Creates encrypted private network between devices
+   - All internet traffic routes through home Mac Mini
+   - Websites see your home IP, not your actual location
+   
+   Why: Security + convenience + access home services anywhere
+
+
+5. UPTIME KUMA
+   ------------
+   Purpose: Monitor all services and get alerts if something goes down
+   
+   Features:
+   - Beautiful dashboard showing status of all services
+   - Get notifications on phone if something stops working
+   - Check if websites are up
+   - Monitor response times
+   - Status page to share with others
+   
+   Why: Know immediately if something breaks, peace of mind
+
+
+6. RSS READER (FreshRSS)
+   ----------------------
+   Purpose: News and blog aggregator - follow content without algorithms
+   
+   Features:
+   - Subscribe to blogs, news sites, podcasts
+   - Read on any device (synced reading progress)
+   - No algorithm deciding what you see
+   - Save articles for later
+   - Organize with folders and tags
+   
+   Why: Take control of content consumption, avoid social media algorithms
+
+
+7. MINECRAFT SERVER
+   ------------------
+   Purpose: Host private Minecraft server for friends
+   
+   Features:
+   - Play with friends anytime
+   - Custom world that's always online
+   - Install mods and plugins
+   - No need to pay for server hosting
+   - Complete control over server settings
+   
+   Why: Fun project, learn server management, play with friends
+
+================================================================================
+IMPLEMENTATION APPROACH:
+================================================================================
+
+PHASE 1 - Foundation:
+- Set up Mac Mini with external storage
+- Install Docker Desktop
+- Set up Tailscale for remote access
+- Configure Time Machine server (built into macOS)
+
+PHASE 2 - Core Services:
+- Deploy media server stack (Plex + automation tools)
+- Set up NextCloud for file syncing
+- Install Portainer for easy Docker management
+
+PHASE 3 - Enhancement:
+- Add Uptime Kuma for monitoring
+- Set up RSS reader
+- Deploy Minecraft server (optional, when friends want to play)
+
+PHASE 4 - Optimization:
+- Configure backups for the server itself
+- Set up alerts and notifications
+- Fine-tune performance
+- Add additional services as needed
+
+================================================================================
+ESTIMATED COSTS:
+================================================================================
+
+If buying new:
+- Mac Mini M1 (8GB): €600-700
+- 4TB External USB-C Drive: €80-100
+- (Optional) RAID Enclosure + 2x 4TB drives: €450
+TOTAL: €680-800 basic, €1150+ with RAID
+
+If already have Mac Mini:
+- 4TB External Drive: €80-100
+TOTAL: Less than €100!
+
+Ongoing costs: Basically $0 (just electricity, ~€5-10/month)
+
+================================================================================
+BENEFITS OF THIS SETUP:
+================================================================================
+
+✓ Complete data ownership - no cloud companies have your files
+✓ No monthly subscriptions (save €10-30/month on various services)
+✓ Access everything from anywhere (with Tailscale)
+✓ Learn valuable skills (Docker, networking, server management)
+✓ One-time investment vs continuous cloud payments
+✓ Expandable - add more services anytime
+✓ Mac Mini is powerful enough for all this and more
+✓ Low power consumption (~15W, runs 24/7)
+✓ Silent operation
+✓ Professional-grade setup at home
+
+================================================================================
+LEARNING RESOURCES:
+================================================================================
+
+When ready to implement:
+- Docker documentation: docs.docker.com
+- Tailscale setup: tailscale.com/kb
+- r/selfhosted on Reddit - amazing community
+- r/homelab - for inspiration and help
+- YouTube: TechnoTim, Awesome Open Source, NetworkChuck
+
+================================================================================
+NEXT STEPS:
+================================================================================
+
+1. Acquire hardware if needed (Mac Mini + external storage)
+2. Review Docker basics
+3. Set up Tailscale first (easiest, immediate benefit)
+4. Start with one service (media server or NextCloud)
+5. Add services gradually, one at a time
+6. Join r/selfhosted community for support
+
+Remember: Start small, add incrementally. Don't try to do everything at once!
+Each service is independent, so can add/remove without affecting others.
+
+================================================================================
+Created: December 2025
+Last updated: December 2025
+Status: Planning phase
+================================================================================

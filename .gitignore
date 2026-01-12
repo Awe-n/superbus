@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# e-Paper library (third-party, don't commit)
+e-Paper/
+
+# System files
+*.log
+*.swp
+*.swo
+*~
+.DS_Store
+
+# API responses (if saved for debugging)
+api_response_*.json
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# Environment
+.env
+.venv/
+venv/
+
+# Service file in system directory (we have a copy in home)
+# /etc/systemd/system/bus-display.service
+
+# Temporary files
+*.tmp
+*.bak
