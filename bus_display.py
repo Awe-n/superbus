@@ -180,13 +180,11 @@ def main():
                 now = datetime.datetime.now()
                 logging.info(f"🔄 Updating display at {now.strftime('%H:%M:%S')}")
                 
-                # Fetch bus data when needed
+                # Fetch fresh bus data on every update
                 if current_mode == MODE_BUS:
-                    if button_pressed or remote_pressed or not last_bus_data:
-                        last_bus_data, is_test_data = fetch_and_parse_departures(direction_filter="Vincennes")
+                    last_bus_data, is_test_data = fetch_and_parse_departures(direction_filter="Vincennes")
                 elif current_mode == MODE_BUS_OPPOSITE:
-                    if button_pressed or remote_pressed or not last_bus_opposite_data:
-                        last_bus_opposite_data, is_test_data_opposite = fetch_and_parse_departures(direction_filter="Casa")
+                    last_bus_opposite_data, is_test_data_opposite = fetch_and_parse_departures(direction_filter="Casa")
                 
                 # Render appropriate screen
                 if current_mode == MODE_WELCOME:
