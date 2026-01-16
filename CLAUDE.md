@@ -13,6 +13,8 @@ superbus/
 ├── display_utils.py    # Shared fonts & utilities
 ├── bus_remote.py       # Interactive remote control (SSH)
 ├── bus_control.sh      # Simple remote control CLI
+├── setup_tailscale.sh  # One-time Tailscale setup for remote access
+├── update.sh           # Pull latest code from GitHub
 ├── stop_id_finder.py   # Utility to find IDFM stop IDs
 └── bus-display.service # systemd service config
 ```
@@ -131,6 +133,41 @@ Shows an interactive menu with detailed status (bus times, weather, etc.):
 - **Control file:** `/tmp/bus_control` - Write mode name to switch screens
 - **Status file:** `/tmp/bus_status.json` - Service writes detailed JSON status
 - Uses `/tmp/` so it works with overlay filesystem (read-only SD card)
+
+## Remote Access from Anywhere (Tailscale)
+
+Tailscale creates a secure VPN mesh so you can SSH to the Pi from anywhere.
+
+### One-time Setup on Pi
+```bash
+./setup_tailscale.sh
+```
+Or manually:
+```bash
+curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up
+# Open the URL it prints to authenticate
+tailscale ip -4  # Note your Pi's Tailscale IP (e.g., 100.64.0.1)
+```
+
+### Setup on Mac
+```bash
+brew install --cask tailscale
+```
+Or download from https://tailscale.com/download/mac
+
+Sign in with the same account.
+
+### Connect from Anywhere
+```bash
+ssh pi@<tailscale-ip>
+python3 bus_remote.py
+```
+
+Or using MagicDNS: `ssh pi@raspberrypi`
+
+### Dashboard
+View all devices at https://login.tailscale.com/admin/machines
 
 ## Notes
 
