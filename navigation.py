@@ -24,7 +24,7 @@ class Navigation:
     """Handles button navigation and mode switching"""
     
     def __init__(self):
-        self.current_mode = MODE_WELCOME
+        self.current_mode = MODE_BUS
         self.setup_buttons()
     
     def setup_buttons(self):
@@ -41,20 +41,20 @@ class Navigation:
         mode_changed = False
         
         if GPIO.input(KEY1) == 0:
-            logging.info("🏠 KEY1 - WELCOME")
-            self.current_mode = MODE_WELCOME
-            mode_changed = True
-            time.sleep(0.3)  # Debounce
-        
-        elif GPIO.input(KEY2) == 0:
-            logging.info("🚌 KEY2 - BUS")
+            logging.info("🚌 KEY1 - BUS (Vincennes)")
             self.current_mode = MODE_BUS
             mode_changed = True
             time.sleep(0.3)  # Debounce
-        
-        elif GPIO.input(KEY3) == 0:
-            logging.info("🚌 KEY3 - BUS OPPOSITE DIRECTION")
+
+        elif GPIO.input(KEY2) == 0:
+            logging.info("🚌 KEY2 - BUS (Casa)")
             self.current_mode = MODE_BUS_OPPOSITE
+            mode_changed = True
+            time.sleep(0.3)  # Debounce
+
+        elif GPIO.input(KEY3) == 0:
+            logging.info("🏠 KEY3 - WELCOME")
+            self.current_mode = MODE_WELCOME
             mode_changed = True
             time.sleep(0.3)  # Debounce
         

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
 Multi-Screen Bus Display with Button Navigation
-- Welcome Screen with Weather Icons (KEY1)
-- Bus Departures (KEY2)
-- Blank Screens (KEY3, KEY4)
+- Bus Departures Vincennes (KEY1) - Default on startup
+- Bus Departures Casa (KEY2)
+- Welcome Screen with Weather Icons (KEY3)
+- Blank Screen (KEY4)
 
 Modular version with separate screen modules and minute-synchronized updates
 """
@@ -78,11 +79,13 @@ def main():
         logging.info("🌤️ Fetching weather...")
         weather_raw = get_weather()
         weather_data = parse_weather(weather_raw)
-        
-        # Show initial welcome screen
-        welcome_image = create_welcome_screen(epd, fonts, weather_data)
-        epd.display(epd.getbuffer(welcome_image))
-        logging.info("✓ Welcome screen displayed!")
+
+        # Fetch initial bus data and show bus screen (KEY1 default)
+        logging.info("🚌 Fetching bus departures...")
+        last_bus_data, is_test_data = fetch_and_parse_departures(direction_filter="Vincennes")
+        bus_image = create_bus_screen(epd, last_bus_data, fonts, is_test_data, direction_name="VINCENNES RER")
+        epd.display(epd.getbuffer(bus_image))
+        logging.info("✓ Bus screen displayed!")
         
         time.sleep(3)
         
@@ -100,7 +103,7 @@ def main():
         logging.info(f"⏰ Syncing to clock: waiting {seconds_until_next_minute} seconds until next minute")
         next_update_time = time.time() + seconds_until_next_minute
         
-        logging.info("\n🎮 Controls: KEY1=Welcome | KEY2=Bus (Vincennes) | KEY3=Bus (Casa) | KEY4=Blank\n")
+        logging.info("\n🎮 Controls: KEY1=Bus (Vincennes) | KEY2=Bus (Casa) | KEY3=Welcome | KEY4=Blank\n")
         
         while True:
             current_time = time.time()
