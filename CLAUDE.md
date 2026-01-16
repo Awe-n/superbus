@@ -169,6 +169,27 @@ Or using MagicDNS: `ssh pi@raspberrypi`
 ### Dashboard
 View all devices at https://login.tailscale.com/admin/machines
 
+## Updating Code
+
+After making changes locally:
+```bash
+# On Mac - push to GitHub
+git add -A && git commit -m "Your message" && git push
+
+# On Pi - pull latest code
+./update.sh
+```
+
+## Overlay Filesystem
+
+The Pi can use an overlay filesystem to protect the SD card from writes.
+
+- **Check status:** `df -h /` (shows `overlayroot` if enabled, `/dev/mmcblk0p2` if disabled)
+- **Toggle:** `sudo raspi-config` → Performance Options → Overlay File System
+- **Currently:** Disabled (changes persist across reboots)
+
+When overlay is enabled, install software with it disabled first, then re-enable.
+
 ## Notes
 
 - Main script path on Pi: `/home/pi/bus_display.py`
