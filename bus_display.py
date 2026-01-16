@@ -39,6 +39,10 @@ UPDATE_INTERVAL = 60  # Update display every 60 seconds
 FULL_REFRESH_INTERVAL = 15  # Full refresh every 15 updates
 WEATHER_UPDATE_INTERVAL = 1800  # Update weather every 30 minutes
 
+# Remote control files (in /tmp so they work with overlay filesystem)
+CONTROL_FILE = "/tmp/bus_control"
+STATUS_FILE = "/tmp/bus_status"
+
 # =============================================================================
 # GLOBAL STATE
 # =============================================================================
@@ -48,6 +52,44 @@ last_bus_opposite_data = []
 is_test_data = False
 is_test_data_opposite = False
 weather_data = None
+
+# =============================================================================
+# REMOTE CONTROL
+# =============================================================================
+
+def check_remote_control(nav):
+    """Check for remote control commands via /tmp/bus_control"""
+    try:
+        if os.path.exists(CONTROL_FILE):
+            with open(CONTROL_FILE, 'r') as f:
+                command = f.read().strip()
+            os.remove(CONTROL_FILE)  # Clear after reading
+
+            if command in (MODE_WELCOME, MODE_BUS, MODE_BUS_OPPOSITE, MODE_BLANK):
+                logging.info(f"📡 Remote command: {command}")
+                nav.current_mode = command
+                return True
+    except Exception as e:
+        logging.debug(f"Remote control check error: {e}")
+    return False
+
+def write_status(mode, is_test=False):
+    """Write current status to /tmp/bus_status"""
+    try:
+        mode_names = {
+            MODE_BUS: "Bus Vincennes",
+            MODE_BUS_OPPOSITE: "Bus Casa",
+            MODE_WELCOME: "Welcome",
+            MODE_BLANK: "Blank"
+        }
+        status = f"Screen: {mode_names.get(mode, mode)}"
+        if is_test:
+            status += " (TEST DATA)"
+        status += f"\nUpdated: {time.strftime('%H:%M:%S')}"
+        with open(STATUS_FILE, 'w') as f:
+            f.write(status)
+    except Exception as e:
+        logging.debug(f"Status write error: {e}")
 
 # =============================================================================
 # MAIN
@@ -108,8 +150,9 @@ def main():
         while True:
             current_time = time.time()
             button_pressed = nav.check_buttons()
+            remote_pressed = check_remote_control(nav)
             current_mode = nav.get_mode()
-            
+
             # Update weather periodically
             if current_time - last_weather_update >= WEATHER_UPDATE_INTERVAL:
                 logging.info("🌤️ Updating weather...")
@@ -117,8 +160,8 @@ def main():
                 weather_data = parse_weather(weather_raw)
                 last_weather_update = current_time
             
-            # Update display at top of each minute or on button press
-            if current_time >= next_update_time or button_pressed:
+            # Update display at top of each minute, button press, or remote command
+            if current_time >= next_update_time or button_pressed or remote_pressed:
                 # Schedule next update for the next minute boundary
                 next_update_time = current_time + (60 - datetime.datetime.now().second)
                 
@@ -128,10 +171,10 @@ def main():
                 
                 # Fetch bus data when needed
                 if current_mode == MODE_BUS:
-                    if button_pressed or not last_bus_data:
+                    if button_pressed or remote_pressed or not last_bus_data:
                         last_bus_data, is_test_data = fetch_and_parse_departures(direction_filter="Vincennes")
                 elif current_mode == MODE_BUS_OPPOSITE:
-                    if button_pressed or not last_bus_opposite_data:
+                    if button_pressed or remote_pressed or not last_bus_opposite_data:
                         last_bus_opposite_data, is_test_data_opposite = fetch_and_parse_departures(direction_filter="Casa")
                 
                 # Render appropriate screen
@@ -154,7 +197,11 @@ def main():
                     epd.display_Fast(epd.getbuffer(image))
                 
                 refresh_count += 1
-            
+
+                # Write status for remote monitoring
+                test_flag = is_test_data if current_mode == MODE_BUS else (is_test_data_opposite if current_mode == MODE_BUS_OPPOSITE else False)
+                write_status(current_mode, test_flag)
+
             time.sleep(0.1)
             
     except KeyboardInterrupt:
