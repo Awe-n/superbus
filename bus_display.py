@@ -12,6 +12,7 @@ Modular version with separate screen modules and minute-synchronized updates
 import sys
 import os
 import time
+import json
 import logging
 import datetime
 
@@ -41,7 +42,7 @@ WEATHER_UPDATE_INTERVAL = 1800  # Update weather every 30 minutes
 
 # Remote control files (in /tmp so they work with overlay filesystem)
 CONTROL_FILE = "/tmp/bus_control"
-STATUS_FILE = "/tmp/bus_status"
+STATUS_FILE = "/tmp/bus_status.json"
 
 # =============================================================================
 # GLOBAL STATE
@@ -73,21 +74,31 @@ def check_remote_control(nav):
         logging.debug(f"Remote control check error: {e}")
     return False
 
-def write_status(mode, is_test=False):
-    """Write current status to /tmp/bus_status"""
+def write_status(mode, departures=None, weather=None, is_test=False):
+    """Write detailed JSON status to /tmp/bus_status.json"""
     try:
-        mode_names = {
-            MODE_BUS: "Bus Vincennes",
-            MODE_BUS_OPPOSITE: "Bus Casa",
-            MODE_WELCOME: "Welcome",
-            MODE_BLANK: "Blank"
+        status = {
+            'mode': mode,
+            'updated': time.strftime('%H:%M:%S'),
+            'is_test': is_test
         }
-        status = f"Screen: {mode_names.get(mode, mode)}"
-        if is_test:
-            status += " (TEST DATA)"
-        status += f"\nUpdated: {time.strftime('%H:%M:%S')}"
+
+        if mode in (MODE_BUS, MODE_BUS_OPPOSITE) and departures:
+            status['departures'] = [d['time'] for d in departures[:2]]
+
+        if mode == MODE_WELCOME:
+            status['greeting'] = "Hola Viejo loco!"
+            status['time'] = time.strftime('%H:%M')
+            status['date'] = time.strftime('%a %d %b')
+            if weather:
+                status['weather'] = {
+                    'morning': f"{weather.get('morning_temp', '?')}C {weather.get('morning_precip', '?')}%",
+                    'afternoon': f"{weather.get('afternoon_temp', '?')}C {weather.get('afternoon_precip', '?')}%",
+                    'evening': f"{weather.get('evening_temp', '?')}C {weather.get('evening_precip', '?')}%"
+                }
+
         with open(STATUS_FILE, 'w') as f:
-            f.write(status)
+            json.dump(status, f)
     except Exception as e:
         logging.debug(f"Status write error: {e}")
 
@@ -199,8 +210,14 @@ def main():
                 refresh_count += 1
 
                 # Write status for remote monitoring
-                test_flag = is_test_data if current_mode == MODE_BUS else (is_test_data_opposite if current_mode == MODE_BUS_OPPOSITE else False)
-                write_status(current_mode, test_flag)
+                if current_mode == MODE_BUS:
+                    write_status(current_mode, departures=last_bus_data, is_test=is_test_data)
+                elif current_mode == MODE_BUS_OPPOSITE:
+                    write_status(current_mode, departures=last_bus_opposite_data, is_test=is_test_data_opposite)
+                elif current_mode == MODE_WELCOME:
+                    write_status(current_mode, weather=weather_data)
+                else:
+                    write_status(current_mode)
 
             time.sleep(0.1)
             

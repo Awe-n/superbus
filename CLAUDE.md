@@ -11,7 +11,8 @@ superbus/
 ├── welcome_screen.py   # Home screen with weather
 ├── bus_screen.py       # Bus departure display
 ├── display_utils.py    # Shared fonts & utilities
-├── bus_control.sh      # Remote control CLI script
+├── bus_remote.py       # Interactive remote control (SSH)
+├── bus_control.sh      # Simple remote control CLI
 ├── stop_id_finder.py   # Utility to find IDFM stop IDs
 └── bus-display.service # systemd service config
 ```
@@ -108,9 +109,16 @@ journalctl -u bus-display.service -f
 
 ## Remote Control (SSH)
 
-Control the display remotely via SSH using `bus_control.sh`.
+### Interactive Mode (Recommended)
+```bash
+python3 bus_remote.py
+```
+Shows an interactive menu with detailed status (bus times, weather, etc.):
+- Press 1-4 to switch screens
+- Press r to refresh status
+- Press 5 or q to exit
 
-### Usage
+### Simple CLI
 ```bash
 ./bus_control.sh status     # See current screen
 ./bus_control.sh vincennes  # Switch to Vincennes bus (or: 1)
@@ -121,7 +129,7 @@ Control the display remotely via SSH using `bus_control.sh`.
 
 ### How It Works
 - **Control file:** `/tmp/bus_control` - Write mode name to switch screens
-- **Status file:** `/tmp/bus_status` - Service writes current state here
+- **Status file:** `/tmp/bus_status.json` - Service writes detailed JSON status
 - Uses `/tmp/` so it works with overlay filesystem (read-only SD card)
 
 ## Notes
