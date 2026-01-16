@@ -23,6 +23,16 @@ def send_command(mode):
     with open(CONTROL_FILE, 'w') as f:
         f.write(mode)
 
+def wait_for_mode_change(target_mode, timeout=5):
+    """Wait until the status reflects the new mode"""
+    start = time.time()
+    while time.time() - start < timeout:
+        status = read_status()
+        if status and status.get('mode') == target_mode:
+            return True
+        time.sleep(0.2)
+    return False
+
 def display_status(status):
     if not status:
         print("Status unknown (service may not be running)")
@@ -96,20 +106,32 @@ def main():
 
         if choice == '1':
             send_command('bus')
-            print("-> Switching to Vincennes...")
-            time.sleep(0.5)
+            print("-> Switching to Vincennes... ", end='', flush=True)
+            if wait_for_mode_change('bus'):
+                print("OK")
+            else:
+                print("(waiting)")
         elif choice == '2':
             send_command('bus_opposite')
-            print("-> Switching to Casa...")
-            time.sleep(0.5)
+            print("-> Switching to Casa... ", end='', flush=True)
+            if wait_for_mode_change('bus_opposite'):
+                print("OK")
+            else:
+                print("(waiting)")
         elif choice == '3':
             send_command('welcome')
-            print("-> Switching to Welcome...")
-            time.sleep(0.5)
+            print("-> Switching to Welcome... ", end='', flush=True)
+            if wait_for_mode_change('welcome'):
+                print("OK")
+            else:
+                print("(waiting)")
         elif choice == '4':
             send_command('blank')
-            print("-> Switching to Blank...")
-            time.sleep(0.5)
+            print("-> Switching to Blank... ", end='', flush=True)
+            if wait_for_mode_change('blank'):
+                print("OK")
+            else:
+                print("(waiting)")
         elif choice == '5' or choice == 'q':
             print("Goodbye!")
             break
