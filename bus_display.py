@@ -28,7 +28,7 @@ from waveshare_epd import epd2in7_V2
 # Import custom modules
 from navigation import Navigation, MODE_WELCOME, MODE_BUS, MODE_BUS_OPPOSITE, MODE_BLANK
 from welcome_screen import get_weather, parse_weather, create_welcome_screen
-from bus_screen import fetch_and_parse_departures, create_bus_screen
+from bus_screen import fetch_and_parse_departures, create_bus_screen, api_stats
 from display_utils import load_fonts, create_blank_screen
 
 logging.basicConfig(level=logging.INFO)
@@ -92,7 +92,13 @@ def write_status(mode, departures=None, weather=None, is_test=False):
         status = {
             'mode': mode,
             'updated': time.strftime('%H:%M:%S'),
-            'is_test': is_test
+            'is_test': is_test,
+            'api_stats': {
+                'date': api_stats.date,
+                'success': api_stats.success,
+                'failed': api_stats.failed,
+                'last_error': api_stats.last_error
+            }
         }
 
         if mode in (MODE_BUS, MODE_BUS_OPPOSITE) and departures:

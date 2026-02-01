@@ -9,12 +9,14 @@ superbus/
 ├── bus_display.py      # Main entry point & orchestrator
 ├── navigation.py       # GPIO button control
 ├── welcome_screen.py   # Home screen with weather
-├── bus_screen.py       # Bus departure display
+├── bus_screen.py       # Bus departure display + API stats
 ├── display_utils.py    # Shared fonts & utilities
 ├── bus_remote.py       # Interactive remote control (SSH)
 ├── bus_control.sh      # Simple remote control CLI
+├── set_mode.sh         # Switch between normal/fast refresh modes
 ├── setup_tailscale.sh  # One-time Tailscale setup for remote access
 ├── update.sh           # Pull latest code from GitHub
+├── boot_update.sh      # Auto-pull code on boot (runs before service)
 ├── stop_id_finder.py   # Utility to find IDFM stop IDs
 └── bus-display.service # systemd service config
 ```
@@ -189,6 +191,43 @@ The Pi can use an overlay filesystem to protect the SD card from writes.
 - **Currently:** Disabled (changes persist across reboots)
 
 When overlay is enabled, install software with it disabled first, then re-enable.
+
+## Refresh Modes
+
+Switch between normal and fast refresh modes:
+
+```bash
+./set_mode.sh           # Show current mode
+./set_mode.sh normal    # 60s updates, full refresh every 15 min (default)
+./set_mode.sh fast      # 30s updates, full refresh every 5 min
+```
+
+## Debugging & Logs
+
+### Live logs
+```bash
+journalctl -u bus-display.service -f
+```
+
+### What to look for
+- `✅ API OK` - Successful API call
+- `❌ API failed` - Failed API call (with reason)
+- `🚌 [VINCENNES] Next buses: 4 min, 12 min` - Departure times fetched
+- `⚠️ [VINCENNES] No data - using TEST mode` - Fallback to test data
+- `API today: 42 OK, 0 failed` - Daily API stats summary
+
+### Status file
+```bash
+cat /tmp/bus_status.json
+```
+Shows current mode, departures, and API stats (success/failed counts).
+
+## Auto-Update on Boot
+
+The service automatically pulls the latest code from GitHub on every boot via `boot_update.sh`. This means:
+- Code updates are applied automatically after reboot
+- No need for overlay filesystem to get fresh code
+- If GitHub is unreachable, existing code is used
 
 ## Notes
 

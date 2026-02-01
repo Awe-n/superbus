@@ -20,6 +20,43 @@ LINE_ID = "STIF:Line::C01229:"
 API_ENDPOINT = "https://prim.iledefrance-mobilites.fr/marketplace/stop-monitoring"
 
 # =============================================================================
+# API STATS TRACKING
+# =============================================================================
+
+class APIStats:
+    """Track API request statistics"""
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.date = datetime.now().strftime("%Y-%m-%d")
+        self.success = 0
+        self.failed = 0
+        self.last_error = None
+
+    def check_date(self):
+        """Reset counters if it's a new day"""
+        today = datetime.now().strftime("%Y-%m-%d")
+        if today != self.date:
+            logging.info(f"📊 New day - resetting API stats (yesterday: {self.success} OK, {self.failed} failed)")
+            self.reset()
+
+    def record_success(self):
+        self.check_date()
+        self.success += 1
+
+    def record_failure(self, error):
+        self.check_date()
+        self.failed += 1
+        self.last_error = str(error)
+
+    def get_summary(self):
+        return f"API today: {self.success} OK, {self.failed} failed"
+
+# Global stats instance
+api_stats = APIStats()
+
+# =============================================================================
 # BUS DATA FETCHING
 # =============================================================================
 
@@ -38,7 +75,7 @@ def generate_test_data():
 
 def get_bus_departures(stop_id=None):
     """Fetch bus departures from IDFM API
-    
+
     Args:
         stop_id: Stop ID to query (defaults to Vincennes stop)
     """
@@ -46,14 +83,28 @@ def get_bus_departures(stop_id=None):
     if stop_id is None:
         stop_id = STOP_ID_VINCENNES
     params = {'MonitoringRef': stop_id, 'LineRef': LINE_ID}
-    
+
     try:
         response = requests.get(API_ENDPOINT, headers=headers, params=params, timeout=10)
         if response.status_code == 200:
+            api_stats.record_success()
+            logging.info(f"✅ API OK (status 200) | {api_stats.get_summary()}")
             return response.json()
+        else:
+            api_stats.record_failure(f"HTTP {response.status_code}")
+            logging.error(f"❌ API failed: HTTP {response.status_code} | {api_stats.get_summary()}")
+            return None
+    except requests.exceptions.Timeout:
+        api_stats.record_failure("Timeout")
+        logging.error(f"❌ API timeout (>10s) | {api_stats.get_summary()}")
+        return None
+    except requests.exceptions.ConnectionError as e:
+        api_stats.record_failure("Connection error")
+        logging.error(f"❌ API connection error: {e} | {api_stats.get_summary()}")
         return None
     except Exception as e:
-        logging.error(f"Bus API Error: {e}")
+        api_stats.record_failure(str(e))
+        logging.error(f"❌ API error: {e} | {api_stats.get_summary()}")
         return None
 
 def parse_departures(data, filter_destination=None, filter_direction=None):
@@ -191,35 +242,31 @@ def create_bus_screen(epd, departures, fonts, is_test, direction_name="VINCENNES
 
 def fetch_and_parse_departures(direction_filter=None):
     """Fetch bus data and return departures with test flag
-    
+
     Args:
         direction_filter: Direction to filter by - "Vincennes" for Aller, "Casa" for Retour
-    
+
     Returns:
         Tuple of (departures list, is_test boolean)
     """
-    logging.info(f"[{time.strftime('%H:%M:%S')}] Fetching bus for direction: {direction_filter or 'all'}...")
-    
+    direction_label = direction_filter.upper() if direction_filter else "ALL"
+
     # Use the correct stop ID based on direction
     if direction_filter and "casa" in direction_filter.lower():
-        stop_id = STOP_ID_CASA  # Valmy - Armand Carrel for opposite direction
-        logging.info(f"Using stop ID: {stop_id} (Valmy - Armand Carrel)")
+        stop_id = STOP_ID_CASA
     else:
-        stop_id = STOP_ID_VINCENNES  # Progrès - Armand Carrel for Vincennes direction
-        logging.info(f"Using stop ID: {stop_id} (Progrès - Armand Carrel)")
-    
+        stop_id = STOP_ID_VINCENNES
+
     data = get_bus_departures(stop_id=stop_id)
-    
+
     if data:
-        # Parse all departures from the stop (no need to filter by direction since we're using the correct stop)
         departures = parse_departures(data, filter_destination=None, filter_direction=None)
     else:
         departures = []
-    
+
     if not departures:
-        logging.warning("⚠ Using TEST data")
+        logging.warning(f"⚠️  [{direction_label}] No data - using TEST mode")
         if direction_filter and "casa" in direction_filter.lower():
-            # Generate test data for opposite direction
             times = sorted([random.randint(3, 45) for _ in range(2)])
             departures = []
             for minutes in times:
@@ -233,7 +280,8 @@ def fetch_and_parse_departures(direction_filter=None):
             departures = generate_test_data()
         is_test = True
     else:
-        logging.info(f"✓ {len(departures)} buses found for direction: {direction_filter or 'all'}")
+        times_str = ", ".join([d['time'] for d in departures[:2]])
+        logging.info(f"🚌 [{direction_label}] Next buses: {times_str}")
         is_test = False
-    
+
     return departures, is_test
