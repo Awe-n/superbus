@@ -31,10 +31,15 @@ echo "3/5 - Copying shell scripts..."
 cp temp_clone/*.sh /home/pi/
 chmod +x /home/pi/*.sh
 
-echo "4/5 - Cleaning up..."
+echo "4/5 - Copying service file..."
+cp temp_clone/bus-display.service /home/pi/
+
+echo "5/6 - Cleaning up..."
 rm -rf temp_clone
 
-echo "5/5 - Restarting service..."
+echo "6/6 - Updating systemd and restarting service..."
+sudo cp /home/pi/bus-display.service /etc/systemd/system/
+sudo systemctl daemon-reload
 sudo systemctl restart bus-display.service
 
 echo
