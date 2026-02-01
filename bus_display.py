@@ -15,6 +15,7 @@ import time
 import json
 import logging
 import datetime
+import argparse
 
 # Add e-Paper library path
 picdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'e-Paper/RaspberryPi_JetsonNano/python/pic')
@@ -36,8 +37,19 @@ logging.basicConfig(level=logging.INFO)
 # CONFIGURATION
 # =============================================================================
 
-UPDATE_INTERVAL = 60  # Update display every 60 seconds
-FULL_REFRESH_INTERVAL = 15  # Full refresh every 15 updates
+# Parse command line arguments
+parser = argparse.ArgumentParser(description='Bus Display')
+parser.add_argument('--fast', action='store_true', help='Fast mode: 30s updates instead of 60s')
+args = parser.parse_args()
+
+# Refresh mode settings
+if args.fast:
+    UPDATE_INTERVAL = 30       # Update every 30 seconds
+    FULL_REFRESH_INTERVAL = 10  # Full refresh every 5 minutes
+else:
+    UPDATE_INTERVAL = 60       # Update every 60 seconds
+    FULL_REFRESH_INTERVAL = 15  # Full refresh every 15 minutes
+
 WEATHER_UPDATE_INTERVAL = 1800  # Update weather every 30 minutes
 
 # Remote control files (in /tmp so they work with overlay filesystem)
@@ -150,11 +162,20 @@ def main():
         refresh_count = 0
         last_weather_update = time.time()
         
-        # Calculate seconds until next minute for initial sync
+        # Calculate seconds until next update boundary for initial sync
         now = datetime.datetime.now()
-        seconds_until_next_minute = 60 - now.second
-        logging.info(f"⏰ Syncing to clock: waiting {seconds_until_next_minute} seconds until next minute")
-        next_update_time = time.time() + seconds_until_next_minute
+        if UPDATE_INTERVAL == 30:
+            # Sync to :00 or :30 second boundaries
+            if now.second < 30:
+                seconds_until_next = 30 - now.second
+            else:
+                seconds_until_next = 60 - now.second
+            logging.info(f"⏰ FAST MODE: Syncing to clock, waiting {seconds_until_next} seconds")
+        else:
+            # Sync to minute boundary
+            seconds_until_next = 60 - now.second
+            logging.info(f"⏰ Syncing to clock: waiting {seconds_until_next} seconds until next minute")
+        next_update_time = time.time() + seconds_until_next
         
         logging.info("\n🎮 Controls: KEY1=Bus (Vincennes) | KEY2=Bus (Casa) | KEY3=Welcome | KEY4=Blank\n")
         
@@ -171,10 +192,19 @@ def main():
                 weather_data = parse_weather(weather_raw)
                 last_weather_update = current_time
             
-            # Update display at top of each minute, button press, or remote command
+            # Update display at scheduled time, button press, or remote command
             if current_time >= next_update_time or button_pressed or remote_pressed:
-                # Schedule next update for the next minute boundary
-                next_update_time = current_time + (60 - datetime.datetime.now().second)
+                # Schedule next update
+                now = datetime.datetime.now()
+                if UPDATE_INTERVAL == 30:
+                    # Next :00 or :30 boundary
+                    if now.second < 30:
+                        next_update_time = current_time + (30 - now.second)
+                    else:
+                        next_update_time = current_time + (60 - now.second)
+                else:
+                    # Next minute boundary
+                    next_update_time = current_time + (60 - now.second)
                 
                 # Log the current time for debugging
                 now = datetime.datetime.now()
